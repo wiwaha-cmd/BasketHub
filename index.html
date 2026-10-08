@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BasketHub - Portal & Pusat Statistik Basket Terlengkap</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nbaDark: '#0a0e17',
+                        nbaCard: '#141c2e',
+                        nbaBorder: '#222f47',
+                        nbaAccent: '#3b82f6',
+                        nbaOrange: '#f97316',
+                        nbaRed: '#ef4444',
+                        nbaGold: '#eab308'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222f47;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        .glow-orange {
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+        }
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+        .glass-panel {
+            background: rgba(20, 28, 46, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-nbaDark text-gray-100 font-sans antialiased min-h-screen flex flex-col selection:bg-nbaOrange selection:text-white">
+
+    <!-- Top Live Ticker Bar -->
+    <div class="bg-nbaCard border-b border-nbaBorder text-xs py-2 px-4 overflow-x-auto whitespace-nowrap scrollbar-none flex items-center gap-4">
+        <span class="inline-flex items-center gap-1.5 font-bold text-nbaRed px-2 py-0.5 rounded bg-red-950/60 border border-red-800 animate-pulse">
+            <span class="w-2 h-2 rounded-full bg-nbaRed"></span> LIVE NOW
+        </span>
+        <div id="ticker-games" class="flex items-center gap-6 divide-x divide-nbaBorder">
+            <!-- Dynamic score ticker loaded via JS -->
+        </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-nbaBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                    <div class="bg-gradient-to-tr from-nbaOrange to-red-600 p-2.5 rounded-xl shadow-lg glow-orange flex items-center justify-center">
+                        <i class="fa-solid font-black text-white text-xl fa-basketball"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-display text-xl font-black tracking-wider text-white flex items-center gap-1">
+                            BASKET<span class="text-nbaOrange">HUB</span>
+                        </span>
+                        <span class="text-[10px] text-gray-400 font-medium tracking-widest uppercase -mt-1">Official Hoops Portal</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                    <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold transition text-nbaOrange bg-nbaOrange/10 border border-nbaOrange/30">Beranda</button>
+                    <button onclick="switchTab('scores')" id="nav-scores" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-nbaBorder/50 transition">Skor & Jadwal</button>
+                    <button onclick="switchTab('standings')" id="nav-standings" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-nbaBorder/50 transition">Klasemen</button>
+                    <button onclick="switchTab('court')" id="nav-court" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-nbaBorder/50 transition">Lap. Taktis</button>
+                    <button onclick="switchTab('players')" id="nav-players" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-nbaBorder/50 transition">Pemain & Tim</button>
+                    <button onclick="switchTab('stats')" id="nav-stats" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-nbaBorder/50 transition">Statistik</button>
+                    <button onclick="switchTab('news')" id="nav-news" class="nav-btn px-3 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white hover:bg-nbaBorder/50 transition">Berita</button>
+                </nav>
+
+                <!-- Search & Actions -->
+                <div class="flex items-center gap-3">
+                    <div class="relative hidden sm:block w-48 lg:w-60">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+                        <input type="text" id="global-search" oninput="handleGlobalSearch(this.value)" placeholder="Cari pemain, tim, berita..." class="w-full bg-nbaDark border border-nbaBorder rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-nbaAccent focus:ring-1 focus:ring-nbaAccent transition">
+                        <div id="search-results" class="hidden absolute top-full left-0 right-0 mt-1 bg-nbaCard border border-nbaBorder rounded-lg shadow-2xl z-50 max-h-80 overflow-y-auto"></div>
+                    </div>
+                    <button onclick="openModal('favorite-team-modal')" class="p-2 bg-nbaCard border border-nbaBorder rounded-lg hover:border-nbaOrange transition text-nbaOrange" title="Pilih Tim Favorit">
+                        <i class="fa-solid fa-star text-sm"></i>
+                    </button>
+                    <!-- Mobile Hamburger Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-300 hover:text-white">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-nbaBorder bg-nbaDark p-4 space-y-2">
+            <button onclick="switchTab('home'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Beranda</button>
+            <button onclick="switchTab('scores'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Skor & Jadwal</button>
+            <button onclick="switchTab('standings'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Klasemen</button>
+            <button onclick="switchTab('court'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Lap. Taktis & Shot Map</button>
+            <button onclick="switchTab('players'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Pemain & Tim</button>
+            <button onclick="switchTab('stats'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Statistik Pemimpin</button>
+            <button onclick="switchTab('news'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg font-semibold text-sm text-gray-200 hover:bg-nbaCard">Berita & Video</button>
+        </div>
+    </header>
+
+    <!-- Main Container Content Sections -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- TAB 1: HOME SECTION -->
+        <section id="tab-home" class="tab-content space-y-8">
+            <!-- Hero Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Feature Banner -->
+                <div class="lg:col-span-2 relative group rounded-2xl overflow-hidden border border-nbaBorder bg-nbaCard shadow-2xl flex flex-col justify-end min-h-[380px] sm:min-h-[460px]">
+                    <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop" alt="Hero Basketball" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-nbaDark via-nbaDark/60 to-transparent"></div>
+                    
+                    <div class="relative p-6 sm:p-8 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 bg-nbaOrange text-white text-xs font-bold uppercase tracking-wider rounded-md">Analisis Mendalam</span>
+                            <span class="text-xs text-gray-300 font-medium"><i class="fa-regular fa-clock mr-1"></i>2 jam lalu</span>
+                        </div>
+                        <h1 class="font-display text-2xl sm:text-4xl font-black text-white leading-tight hover:text-nbaOrange transition cursor-pointer" onclick="openArticleModal(0)">
+                            Dominasi Lakers di Quarter 4: Strategi Pick & Roll LeBron James Melumpuhkan Pertahanan Celtics
+                        </h1>
+                        <p class="text-gray-300 text-sm line-clamp-2 max-w-2xl font-light">
+                            Ulasan teknis bagaimana skema ofensif teranyar membawa kemenangan dramatis 112-108 di Crypto.com Arena malam ini.
+                        </p>
+                        <div class="pt-2 flex items-center gap-4">
+                            <button onclick="openArticleModal(0)" class="px-5 py-2.5 bg-nbaOrange hover:bg-orange-600 text-white font-bold rounded-xl text-sm transition flex items-center gap-2 glow-orange">
+                                Baca Selengkapnya <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                            <button onclick="openVideoModal('Highlight Lakers vs Celtics', 'https://www.youtube.com/embed/dQw4w9WgXcQ')" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl text-sm backdrop-blur transition flex items-center gap-2">
+                                <i class="fa-solid fa-play text-nbaOrange"></i> Tonton Highlight
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side Highlights List & Prediction Widget -->
+                <div class="space-y-6 flex flex-col justify-between">
+                    <!-- Featured Side Stories -->
+                    <div class="bg-nbaCard border border-nbaBorder rounded-2xl p-5 space-y-4">
+                        <h3 class="font-display font-bold text-base text-white flex items-center justify-between border-b border-nbaBorder pb-3">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-bolt text-nbaOrange"></i> Berita Utama</span>
+                            <span class="text-xs text-nbaAccent cursor-pointer hover:underline" onclick="switchTab('news')">Lihat Semua</span>
+                        </h3>
+                        
+                        <div class="space-y-3" id="home-side-news">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Mini Game: Live Voting/Prediction -->
+                    <div class="bg-gradient-to-br from-nbaCard to-nbaBorder/40 border border-nbaBorder rounded-2xl p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-nbaOrange flex items-center gap-1.5">
+                                <i class="fa-solid fa-fire"></i> Prediksi Game Hari Ini
+                            </span>
+                            <span class="text-[10px] text-gray-400">Vote Komunitas</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-white">Siapa yang akan memenangkan Game 5?</h4>
+                        
+                        <div id="poll-widget" class="space-y-2 pt-1">
+                            <button onclick="voteTeam('LAL')" class="w-full flex items-center justify-between p-3 rounded-xl bg-nbaDark/80 border border-nbaBorder hover:border-purple-500 transition group text-left">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+                                    <span class="text-xs font-bold text-white group-hover:text-purple-400">LA Lakers</span>
+                                </div>
+                                <span id="vote-lal-pct" class="text-xs font-mono font-bold text-gray-400">58%</span>
+                            </button>
+                            <button onclick="voteTeam('BOS')" class="w-full flex items-center justify-between p-3 rounded-xl bg-nbaDark/80 border border-nbaBorder hover:border-green-500 transition group text-left">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                    <span class="text-xs font-bold text-white group-hover:text-green-400">Boston Celtics</span>
+                                </div>
+                                <span id="vote-bos-pct" class="text-xs font-mono font-bold text-gray-400">42%</span>
+                            </button>
+                        </div>
+                        <p id="vote-msg" class="text-[11px] text-gray-400 text-center italic pt-1">Klik tim pilihanmu untuk memberikan suara.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Match Preview Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-display text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-nbaOrange"></i> Pertandingan Pilihan
+                    </h2>
+                    <button onclick="switchTab('scores')" class="text-xs text-nbaAccent font-semibold hover:underline flex items-center gap-1">
+                        Jadwal Lengkap & Box Score <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+                <div id="home-featured-games" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic Live Score Cards -->
+                </div>
+            </div>
+
+            <!-- Stats Leaders Highlights Banner -->
+            <div class="bg-gradient-to-r from-nbaCard via-nbaDark to-nbaCard border border-nbaBorder rounded-2xl p-6">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="space-y-2 text-center md:text-left">
+                        <span class="text-xs font-bold uppercase tracking-widest text-nbaOrange">Puncak Performa Musim</span>
+                        <h3 class="font-display text-2xl font-black text-white">Pemimpin Statistik Musim Reguler</h3>
+                        <p class="text-xs text-gray-400 max-w-md">Pantau performa terbaik pemain dalam kategori Poin (PPG), Rebound (RPG), Assist (APG), dan Blok.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="switchTab('stats')" class="px-5 py-2.5 bg-nbaAccent hover:bg-blue-600 text-white font-bold rounded-xl text-sm transition glow-blue">
+                            Lihat Pemimpin Stats Lengkap
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: SCORES & SCHEDULE -->
+        <section id="tab-scores" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-nbaBorder pb-4">
+                <div>
+                    <h2 class="font-display text-2xl font-black text-white">Jadwal & Skor Pertandingan</h2>
+                    <p class="text-xs text-gray-400">Hasil pertandingan langsung, skor per kuarter, dan analisis Play-by-Play.</p>
+                </div>
+                <!-- Date Filters -->
+                <div class="flex items-center bg-nbaCard border border-nbaBorder rounded-xl p-1 gap-1 text-xs font-medium">
+                    <button onclick="filterScores('yesterday')" id="score-btn-yesterday" class="px-3 py-1.5 rounded-lg text-gray-300 hover:text-white transition">Kemarin</button>
+                    <button onclick="filterScores('today')" id="score-btn-today" class="px-3 py-1.5 rounded-lg bg-nbaAccent text-white font-bold transition">Hari Ini (LIVE)</button>
+                    <button onclick="filterScores('upcoming')" id="score-btn-upcoming" class="px-3 py-1.5 rounded-lg text-gray-300 hover:text-white transition">Mendatang</button>
+                </div>
+            </div>
+
+            <!-- Detailed Scorecards List -->
+            <div id="scores-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </section>
+
+        <!-- TAB 3: STANDINGS -->
+        <section id="tab-standings" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-display text-2xl font-black text-white">Klasemen Liga NBA</h2>
+                    <p class="text-xs text-gray-400">Peringkat tim Wilayah Timur dan Wilayah Barat musim ini.</p>
+                </div>
+                <!-- Conference Toggle -->
+                <div class="flex items-center bg-nbaCard border border-nbaBorder rounded-xl p-1 gap-1 text-xs font-semibold">
+                    <button onclick="toggleConference('east')" id="conf-btn-east" class="px-4 py-2 rounded-lg bg-nbaOrange text-white transition">Wilayah Timur (East)</button>
+                    <button onclick="toggleConference('west')" id="conf-btn-west" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white transition">Wilayah Barat (West)</button>
+                </div>
+            </div>
+
+            <!-- Standings Table Card -->
+            <div class="bg-nbaCard border border-nbaBorder rounded-2xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-nbaDark/80 text-xs uppercase text-gray-400 font-semibold border-b border-nbaBorder">
+                            <tr>
+                                <th class="py-3.5 px-4">Pos / Tim</th>
+                                <th class="py-3.5 px-3 text-center">Menang (W)</th>
+                                <th class="py-3.5 px-3 text-center">Kalah (L)</th>
+                                <th class="py-3.5 px-3 text-center">% Menang</th>
+                                <th class="py-3.5 px-3 text-center">GB</th>
+                                <th class="py-3.5 px-3 text-center hidden sm:table-cell">Kandang</th>
+                                <th class="py-3.5 px-3 text-center hidden sm:table-cell">Tandang</th>
+                                <th class="py-3.5 px-3 text-center">Runtutan (Streak)</th>
+                                <th class="py-3.5 px-3 text-center hidden md:table-cell">10 Terakhir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-tbody" class="divide-y divide-nbaBorder/50 font-medium">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-gray-400 bg-nbaCard/50 p-3 rounded-xl border border-nbaBorder">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-500/30 border border-blue-500"></span> Peringkat 1-6: Lolos Playoff Direct</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-orange-500/30 border border-orange-500"></span> Peringkat 7-10: Zona Play-In</span>
+            </div>
+        </section>
+
+        <!-- TAB 4: INTERACTIVE COURT & PLAYBOOK -->
+        <section id="tab-court" class="tab-content hidden space-y-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-display text-2xl font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-nbaOrange"></i> Visualisator Lapangan Taktis & Shot Map
+                    </h2>
+                    <p class="text-xs text-gray-400">Analisis zona tembakan bintang NBA atau simulasikan skema taktik pergerakan bola.</p>
+                </div>
+                
+                <!-- Court Controls -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="court-player-select" onchange="renderCourtData()" class="bg-nbaCard border border-nbaBorder text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-nbaOrange">
+                        <option value="curry">Stephen Curry (3PT Specialist Shot Map)</option>
+                        <option value="lebron">LeBron James (Inside Drive & Midrange Map)</option>
+                        <option value="jokic">Nikola Jokić (Paint & Elbow Efficiency)</option>
+                    </select>
+                    <div class="flex bg-nbaCard border border-nbaBorder rounded-xl p-1 gap-1 text-xs">
+                        <button onclick="setCourtMode('shots')" id="mode-shots-btn" class="px-3 py-1.5 rounded-lg bg-nbaOrange text-white font-bold">Shot Map</button>
+                        <button onclick="setCourtMode('playbook')" id="mode-playbook-btn" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white">Skema Taktik (Playbook)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Interactive SVG Canvas Court -->
+                <div class="lg:col-span-2 bg-nbaCard border border-nbaBorder rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[420px]">
+                    <div class="w-full max-w-xl aspect-[15/11] relative border-2 border-amber-600/40 bg-amber-950/20 rounded-xl overflow-hidden p-4 shadow-inner" id="court-canvas-wrapper">
+                        <!-- SVG Basketball Court -->
+                        <svg viewBox="0 0 500 470" class="w-full h-full text-amber-500/40 stroke-current fill-none stroke-[2.5]" id="court-svg">
+                            <!-- Outer Boundary -->
+                            <rect x="5" y="5" width="490" height="460" class="stroke-amber-600/50" />
+                            <!-- Key / Paint -->
+                            <rect x="170" y="5" width="160" height="190" class="fill-amber-900/20 stroke-amber-500/60" />
+                            <circle cx="250" cy="195" r="60" class="stroke-amber-500/60" />
+                            <!-- Free Throw Arc -->
+                            <path d="M 190,195 A 60,60 0 0,1 310,195" stroke-dasharray="6,6" />
+                            <!-- Restricted Area Arc -->
+                            <path d="M 210,5 v 15 A 40,40 0 0,0 290,20 v -15" class="stroke-amber-400" />
+                            <!-- Hoop & Backboard -->
+                            <line x1="210" y1="28" x2="290" y2="28" stroke-width="4" class="stroke-white" />
+                            <circle cx="250" cy="38" r="10" class="stroke-nbaOrange fill-nbaOrange/20 stroke-2" />
+                            <!-- 3-Point Line -->
+                            <path d="M 35,5 v 80 A 215,215 0 0,0 465,85 v -80" class="stroke-amber-400 stroke-[3]" />
+                            <!-- Center Court Arc -->
+                            <path d="M 170,465
